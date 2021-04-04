@@ -1,0 +1,78 @@
+version: '3.7'
+
+volumes:
+  psql: {}
+  static_volume: {}
+  media_volume: {}
+
+services:
+
+  psql:
+    build:
+      dockerfile: Dockerfile.postgres
+      context: ./
+    container_name: database
+    volumes:
+      - psql:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: sample_db
+      POSTGRES_USER: sample
+      POSTGRES_PASSWORD: sample
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 10
+#    restart: always
+
+
+  base:
+    build:
+      dockerfile: Dockerfile.django
+      context: ./
+    image: sample-back
+    expose:
+      - 8000
+    command: sh -c "sleep 30; python manage.py migrate --noinput"
+    links:
+      - psql:postgres
+    volumes:
+      - ./:/app/sample
+      - static_volume:/app/sample/static
+      - media_volume:/app/sample/media
+    env_file:
+      - sample.env
+#    depends_on:
+#      psql:
+#        condition: service_healthy
+
+  app:
+    image: sample-back
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes_from:
+      - base
+    links:
+      - psql:postgres
+    container_name: application
+    ports:
+      - 8000:8000
+    env_file:
+      - sample.env
+    depends_on:
+      base:
+        condition: service_started
+
+  nginx:
+    build: ./nginx
+    restart: always
+    volumes:
+      - static_volume:/app/sample/static
+      - media_volume:/app/sample/media
+    ports:
+      - 1337:80
+    depends_on:
+      app:
+        condition: service_started

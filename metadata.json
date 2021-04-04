@@ -1,0 +1,23 @@
+{
+  "labels": [
+    {
+      "id": "335b54a4-3e50-4211-9788-e8cb8aece304",
+      "class_id": "tooth",
+      "surface": [
+        "T",
+        "I",
+        "M"
+      ],
+      "shape": {
+        "endX": 12,
+        "endY": 12,
+        "startY": 10,
+        "startX": 10
+      },
+      "meta": {
+        "confirmed": true,
+        "confidence_percent": 0.15
+      }
+    }
+  ]
+}
